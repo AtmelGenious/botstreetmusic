@@ -9,6 +9,7 @@ import telebot  # библиотека работы с Telegram API
 from telebot import types
 import pysondb  # библиотека json базы данных
 import datetime
+import random
 
 from tomlkit import date  # библиотека времени
 # классы
@@ -83,8 +84,6 @@ class instruments:
             else:
                 freePoint[i] = True
             i+=add 
-        for x in freePoint:
-            print('x ' + str(freePoint.index(x)) + ' : '+ str(freePoint[freePoint.index(x)]))
         return freePoint
 
     def timeMarkupConstruct(pointNum, date):
@@ -112,9 +111,12 @@ main()
 # комманда запуска
 @bot.message_handler(commands=['start'])
 def start(message):
+    random.seed()
+    q = random.choices(texts.quotes, weights=[20, 20, 20, 20, 3, 20, 20, 20, 20, 20], k=1)
     print('/start: ' + str(message.from_user.id))
-    bot.send_message(message.chat.id, 'Хочешь послушать музыку на советской или сам являешься уличным музыкантом? Выбери то что тебе необходимо', reply_markup=markups.start)
-
+    print('Reserve exist: ' + str(dataBase.points.checkExistingReserve(message.from_user.id)))
+    bot.send_photo(message.chat.id, open('images/main.png', 'rb'),'Приветствуем в Сообществе Уличных Музыкантов! Если вы хотите послушать уличных музыкантов, нажмите на кнопку "' + texts.buttons.start.button1 + '".\n Если вы сами являетесь исполнителем, то можете забронировать выступление используя кнопку "' + texts.buttons.start.button2 + '". \n\n_' + q[0] + '_', reply_markup=markups.start, parse_mode='Markdown')
+    
 def admin(message):
     if len(admins.reSearch('tid', message.from_user.id)) > 0:
         bot.send_message(message.chat.id, 'Добро пожаловать в администрационную панель', reply_markup=markups.adminmenu)
@@ -148,8 +150,11 @@ def adminInputParse(message):
         case _:
             nextStepHandler(message, adminInputParse)
 def addTID(message):
-    admins.add({'tid': int(message.text)})
-    bot.send_message(message.chat.id, 'done!:' + message.text)
+    try:
+        admins.add({'tid': int(message.text)})
+        bot.send_message(message.chat.id, 'done!:' + message.text)
+    except Exception:
+        pass
     admin(message)
 def removeTID(message):
     data = admins.reSearch('tid', message.text)
@@ -160,8 +165,11 @@ def removeTID(message):
     bot.send_message(message.chat.id, 'done!:' + message.text)
     admin(message)
 def banTID(message):
-    ban.add({'tid': int(message.text)})
-    bot.send_message(message.chat.id, 'done!:' + message.text)
+    try:
+        ban.add({'tid': int(message.text)})
+        bot.send_message(message.chat.id, 'done!:' + message.text)
+    except Exception:
+        pass
     admin(message)
 def unbanTID(message):
     data = ban.reSearch('tid', message.text)
@@ -190,7 +198,7 @@ class mainCommands:
                 print('buttons.start.deleteAccount: ' + str(message.from_user.id))
             case texts.buttons.start.about:  # информация о боте
                 print('buttons.start.about: ' + str(message.from_user.id))
-                bot.send_message(message.chat.id, 'Этот бот создан @leracpp.\nОн находится в стадии бета-теста, некоторые функции могут не работать, могут возникать баги и ошибки. По всем вопросам и предложениям, помощи в отладке и исправлении багов писать в личку. \n*ПОЖАЛУЙСТА, дублируйте свою бронь в чат "Советская ЧАТ Брест". Это поможет избежать конфликтов при ошибках бота.*\nПравила пользования:\n-Запрещены названия связаные с экстримизмом \n(http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/)\n-Запрещёно злоупотребление багами и ошибками(абуз)\n', parse_mode='Markdown');
+                bot.send_message(message.chat.id, 'Этот бот создан @leracpp.\nОн находится в стадии бета-теста, некоторые функции могут не работать, могут возникать баги и ошибки. По всем вопросам и предложениям, помощи в отладке и исправлении багов писать в личку. \n*ПОЖАЛУЙСТА, дублируйте свою бронь в чат "Советская ЧАТ Брест". Это поможет избежать конфликтов при ошибках бота.*\nПравила пользования:\n-Запрещены названия связаные с экстремизмом или экстремистскими материалами \n(http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/)\n-Запрещёно злоупотребление багами и ошибками(абуз)\n', parse_mode='Markdown');
             case texts.buttons.choice.back:
                 start(message)
     # функция отправки расписания
@@ -242,7 +250,7 @@ class mainCommands:
             #проверка регистрации
             print(ban.reSearch('tid', message.from_user.id))
             if len(users.reSearch('tid', message.from_user.id)) > 0:
-                bot.send_message(message.chat.id, 'Приветствуем ' + dataBase.user.getUserName(message.from_user.id) + '!\nВы выступаете под названием "' + dataBase.user.getBandName(message.from_user.id) + '"\nВыберите точку бронирования', reply_markup=markups.points)
+                bot.send_message(message.chat.id, 'Приветствуем ' + dataBase.user.getUserName(message.from_user.id) + '!\nВы выступаете под названием "' + dataBase.user.getBandName(message.from_user.id) + '"\nВыберите точку на которой собираетесь выступать', reply_markup=markups.points)
                 nextStepHandler(message, points.selectPoint)
             else:
                 bot.send_message(
@@ -269,24 +277,29 @@ class points:
         elif message.text == texts.buttons.choice.back:
                 start(message)
     def selectDate(message, pointNum):
-        dataprint = ''
-        for x in texts.dates:
-            dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
-        match pointNum:
-            case 0:
-                bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
-                nextStepHandler(message, points.selectTimeStart, pointNum)
-            case 1:
-                bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
-                nextStepHandler(message, points.selectTimeStart, pointNum)
-            case 2:
-                bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
-                nextStepHandler(message, points.selectTimeStart, pointNum)
-            case texts.buttons.choice.back:
-                mainCommands.reservePoint(message)
-            case _:
-                bot.send_message(message.chat.id, 'Команда не распознана', reply_markup=markups.points)
-                nextStepHandler(message, points.selectPoint)
+        if dataBase.points.checkExistingReserve() > 1:
+            dataprint = ''
+            for x in texts.dates:
+                dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
+            match pointNum:
+                case 0:
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    nextStepHandler(message, points.selectTimeStart, pointNum)
+                case 1:
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    nextStepHandler(message, points.selectTimeStart, pointNum)
+                case 2:
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    nextStepHandler(message, points.selectTimeStart, pointNum)
+                case texts.buttons.choice.back:
+                    mainCommands.reservePoint(message)
+                case _:
+                    bot.send_message(message.chat.id, 'Команда не распознана', reply_markup=markups.points)
+                    nextStepHandler(message, points.selectPoint)
+        else:
+            bot.send_message(message.chat.id, 'У вас уже есть активная бронь. Удалите предыдущую бронь или дождитесь окончания вашего выступления')
+            sleep(1)
+            start(message)
     def selectTimeStart(message, pointNum):
         weekday = None
         for x in texts.weekdays:
@@ -427,9 +440,23 @@ class dataBase:
                 return None
             return out
     class points:
+        def checkExistingReserve(tid):
+            result = 0
+            for x in point:
+                i = 0
+                data = x.getAll()
+                while(i < len(texts.dates)):
+                    o = 0
+                    while(o < len(data)):
+                        if data[o]['date'] == texts.dates[i]:
+                            if data[o]['tid'] == tid:
+                                result += 1
+                        o += 1
+                    i += 1
+            return result
         def removeReserveFromDB(message):
             for x in point:
-                i=0
+                i = 0
                 data = x.getAll()
                 while(i < len(data)):
                     if data[i]['tid'] == message.from_user.id:
