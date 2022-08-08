@@ -375,7 +375,7 @@ class deleteAccount:
         else:
             bot.send_message(message.chat.id, 'Аккаунта не существует')
     def confirm(message):
-        if message.text == 'Да':
+        if message.text == texts.buttons.choice.yes:
             id = users.reSearch('tid', message.from_user.id)[0]['id']
             dataBase.points.removeReserveFromDB(message)
             users.deleteById(id)
