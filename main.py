@@ -283,13 +283,13 @@ class points:
                 dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
             match pointNum:
                 case 0:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+ 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case 1:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case 2:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+'*\nПравила пользования:\n' + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case texts.buttons.choice.back:
                     mainCommands.reservePoint(message)
@@ -335,7 +335,7 @@ class points:
             points.selectTimeStart(message, pointNum)
     def confirmReserve(message, pointNum, date, time):
         try:
-            if int(message.text[:1]) <= instruments.checkForwardTime(pointNum, time, date) and not (int(message.text[:1]) > 1 and time == 23):
+            if int(message.text[:1]) <= instruments.checkForwardTime(pointNum, time, date) and not (int(message.text[:1]) > 1 and time == 23) and not (int(message.text[:1]) > 2 and time == 22):
                 duration = int(message.text[:1])
                 bot.send_message(message.chat.id, 'Проверьте правильность введённых данных:\nИсполнитель: ' + dataBase.user.getBandName(message.from_user.id) + '\nДата: ' + instruments.formatDate(date) + '\nВремя: ' + str(time) + ':00\nПродолжительность выступления: ' + str(duration) + ' часов (до ' + str(time + duration) +':00 часов)', reply_markup=markups.confirm)
                 nextStepHandler(message, points.saveReserve, pointNum, date, time, duration)
