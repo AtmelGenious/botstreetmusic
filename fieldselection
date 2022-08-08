@@ -1,0 +1,31 @@
+pointselection
+{
+  bandname:
+  discription:
+  time:
+  duration:
+  date:
+  number:
+  tid:
+  login:
+}
+
+user
+{
+  bandname:
+  tid:
+  number:
+  login:
+}
+
+eula
+{
+  tid:
+  name:
+  agree:
+}
+
+banlist
+{
+  tid:
+}

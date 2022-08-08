@@ -1,0 +1,4 @@
+pyTelegramBotAPI==4.6.0
+pysondb==1.6.7
+numpy==1.23.1
+tomlkit==0.11.1
