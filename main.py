@@ -17,7 +17,7 @@ import texts  # texts.py - строки приложения
 import markups  # markups.py - кнопки приложения
 # ---------------------------------------------
 bot = telebot.TeleBot(
-    '5368398704:AAHzpAZ05uUsZARnCi5AWQEKbpdK6gkIF6o')  # Token Insert
+    '5452533276:AAHUE4C9_gE9Jn46ucqEU3cfEtwkWTLOrlI')  # Token Insert
 users = pysondb.getDb('users.json')
 point = [pysondb.getDb('point1.json'), pysondb.getDb(
     'point2.json'), pysondb.getDb('point3.json')]
