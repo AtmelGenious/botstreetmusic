@@ -283,13 +283,13 @@ class points:
                 dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
             match pointNum:
                 case 0:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum]+ 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, texts.pointNames[pointNum]+ 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case 1:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case 2:
-                    bot.send_message(message.chat.id, '*'+ texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                    bot.send_message(message.chat.id, texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case texts.buttons.choice.back:
                     mainCommands.reservePoint(message)
