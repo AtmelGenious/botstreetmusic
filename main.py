@@ -277,7 +277,7 @@ class points:
         elif message.text == texts.buttons.choice.back:
                 start(message)
     def selectDate(message, pointNum):
-        if dataBase.points.checkExistingReserve() > 1:
+        if dataBase.points.checkExistingReserve(message.from_user.id) > 1:
             dataprint = ''
             for x in texts.dates:
                 dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
