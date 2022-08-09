@@ -29,6 +29,7 @@ weekdays.add(types.KeyboardButton(texts.buttons.choice.back))
 
 duration = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
 duration.add(types.KeyboardButton('1 час'), types.KeyboardButton('2 часа'), types.KeyboardButton('3 часа'))
+duration.add(types.KeyboardButton('4 часа'), types.KeyboardButton('5 часов'), types.KeyboardButton('6 часов'))
 
 confirm = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
 confirm.add(types.KeyboardButton(texts.buttons.choice.correct), types.KeyboardButton(texts.buttons.choice.cancel))

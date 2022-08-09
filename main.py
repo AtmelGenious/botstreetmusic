@@ -17,10 +17,9 @@ import texts  # texts.py - строки приложения
 import markups  # markups.py - кнопки приложения
 # ---------------------------------------------
 bot = telebot.TeleBot(
-    '5443931455:AAGU5Ot9oOSiWucnGxJn4utpPAeNS1nk8eo')  # Token Insert
+    '5368398704:AAHzpAZ05uUsZARnCi5AWQEKbpdK6gkIF6o')  # Token Insert
 users = pysondb.getDb('users.json')
-point = [pysondb.getDb('point1.json'), pysondb.getDb(
-    'point2.json'), pysondb.getDb('point3.json')]
+point = [pysondb.getDb('point1.json'), pysondb.getDb(    'point2.json'), pysondb.getDb('point3.json')]
 admins = pysondb.getDb('admins.json')
 ban = pysondb.getDb('banned.json')
 globalDate = datetime.datetime.today()
@@ -31,7 +30,7 @@ class instruments:
     def checkForwardTime(pointNum, time, date):
         forwardTime = 0
         print(str(dataBase.points.timeExist(pointNum, time+forwardTime, date)))
-        while not dataBase.points.timeExist(pointNum, time+forwardTime, date) and forwardTime <= 3:
+        while not dataBase.points.timeExist(pointNum, time+forwardTime, date) and forwardTime <= 5:
             forwardTime+=1
             print(str(forwardTime))
         return forwardTime
@@ -112,7 +111,7 @@ main()
 @bot.message_handler(commands=['start'])
 def start(message):
     random.seed()
-    q = random.choices(texts.quotes, weights=[20, 20, 20, 20, 3, 20, 20, 20, 20, 20], k=1)
+    q = random.choices(texts.quotes, weights=[20, 20, 20, 20, 5, 20, 20, 20, 20, 20], k=1)
     print('/start: ' + str(message.from_user.id))
     print('Reserve exist: ' + str(dataBase.points.checkExistingReserve(message.from_user.id)))
     bot.send_photo(message.chat.id, open('images/main.png', 'rb'),'Приветствуем в Сообществе Уличных Музыкантов! Если вы хотите послушать уличных музыкантов, нажмите на кнопку "' + texts.buttons.start.button1 + '".\n Если вы сами являетесь исполнителем, то можете забронировать выступление используя кнопку "' + texts.buttons.start.button2 + '". \n\n_' + q[0] + '_', reply_markup=markups.start, parse_mode='Markdown')
@@ -147,8 +146,11 @@ def adminInputParse(message):
             nextStepHandler(message, banTID)
         case '/start':
             start(message)
+        case 'Upload databases':
+            pass
         case _:
             nextStepHandler(message, adminInputParse)
+        
 def addTID(message):
     try:
         admins.add({'tid': int(message.text)})
@@ -225,7 +227,7 @@ class mainCommands:
                                 #table += y['date'] + '\n'
                                 #table += y['number'] + '\n'
                                 #table += str(y['tid']) + '\n'
-                                table += '📞' + texts.messages.list.login + '@' + y['login'] + '\n\n'
+                                table += '📞' + texts.messages.list.login + '@' + str(y['login']) + '\n\n'
                                 #table += str(y['id']) + '\n\n'
                         z+=1 
                     #print('datadate:' + str(datadate)) #debugprint
@@ -277,7 +279,7 @@ class points:
         elif message.text == texts.buttons.choice.back:
                 start(message)
     def selectDate(message, pointNum):
-        if dataBase.points.checkExistingReserve(message.from_user.id) == 0:
+        if dataBase.points.checkExistingReserve(message.from_user.id) < 2:
             dataprint = ''
             for x in texts.dates:
                 dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
@@ -297,7 +299,7 @@ class points:
                     bot.send_message(message.chat.id, 'Команда не распознана', reply_markup=markups.points)
                     nextStepHandler(message, points.selectPoint)
         else:
-            bot.send_message(message.chat.id, 'У вас уже есть активная бронь. Удалите предыдущую бронь или дождитесь окончания вашего выступления')
+            bot.send_message(message.chat.id, 'У вас уже есть активные брони (Максимум 2 по 6 часов). Удалите предыдущие брони или дождитесь окончания вашего выступления')
             sleep(1)
             start(message)
     def selectTimeStart(message, pointNum):
@@ -335,13 +337,13 @@ class points:
             points.selectTimeStart(message, pointNum)
     def confirmReserve(message, pointNum, date, time):
         try:
-            if int(message.text[:1]) <= instruments.checkForwardTime(pointNum, time, date) and not (int(message.text[:1]) > 1 and time == 23) and not (int(message.text[:1]) > 2 and time == 22):
+            if int(message.text[:1]) <= instruments.checkForwardTime(pointNum, time, date) and not (int(message.text[:1]) > 1 and time == 23) and not (int(message.text[:1]) > 2 and time == 22) and not (int(message.text[:1]) > 3 and time == 21) and not (int(message.text[:1]) > 4 and time == 20) and not (int(message.text[:1]) > 5 and time == 19) and not (int(message.text[:1]) > 6 and time == 18):
                 duration = int(message.text[:1])
                 bot.send_message(message.chat.id, 'Проверьте правильность введённых данных:\nИсполнитель: ' + dataBase.user.getBandName(message.from_user.id) + '\nДата: ' + instruments.formatDate(date) + '\nВремя: ' + str(time) + ':00\nПродолжительность выступления: ' + str(duration) + ' часов (до ' + str(time + duration) +':00 часов)', reply_markup=markups.confirm)
                 nextStepHandler(message, points.saveReserve, pointNum, date, time, duration)
             else: raise Exception()
         except:
-            bot.send_message(message.chat.id, 'Не верная продолжительность (Максимум 3 часа) или ваша бронь пересекается с предыдущей', reply_markup=markups.duration)
+            bot.send_message(message.chat.id, 'Не верная продолжительность (Максимум 6 часов) или ваша бронь пересекается с последующей', reply_markup=markups.duration)
             nextStepHandler(message, points.confirmReserve, pointNum, date, time)          
     def saveReserve(message, pointNum, date, time, duration):
         if message.text == texts.buttons.choice.correct:
