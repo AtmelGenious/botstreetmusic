@@ -252,7 +252,7 @@ class mainCommands:
             #проверка регистрации
             print(ban.reSearch('tid', message.from_user.id))
             if len(users.reSearch('tid', message.from_user.id)) > 0:
-                bot.send_message(message.chat.id, 'Приветствуем ' + dataBase.user.getUserName(message.from_user.id) + '!\nВы выступаете под названием "' + dataBase.user.getBandName(message.from_user.id) + '"\nВыберите точку на которой собираетесь выступать', reply_markup=markups.points)
+                bot.send_message(message.chat.id, 'Приветствуем ' + str(dataBase.user.getUserName(message.from_user.id)) + '!\nВы выступаете под названием "' + dataBase.user.getBandName(message.from_user.id) + '"\nВыберите точку на которой собираетесь выступать', reply_markup=markups.points)
                 nextStepHandler(message, points.selectPoint)
             else:
                 bot.send_message(
@@ -348,7 +348,7 @@ class points:
     def saveReserve(message, pointNum, date, time, duration):
         if message.text == texts.buttons.choice.correct:
             tid = message.from_user.id
-            dataBase.points.addReserve(pointNum, dataBase.user.getBandName(tid),'', time, duration, date, dataBase.user.getNumber(tid), tid, dataBase.user.getUserName(tid))
+            dataBase.points.addReserve(pointNum, dataBase.user.getBandName(tid),'', time, duration, date, dataBase.user.getNumber(tid), tid, str(dataBase.user.getUserName(tid)))
             bot.send_message(message.chat.id, 'Успешно зарезервировано!')
             start(message)
         else:
