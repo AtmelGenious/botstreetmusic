@@ -207,7 +207,7 @@ class mainCommands:
     def sendPointsList(message):
         for x in point:
             table = ''
-            table += '\U0001F4CD*' + texts.pointNames[point.index(x)] + '*\n\n'
+            table += '\U0001F4CD' + texts.pointNames[point.index(x)] + '\n\n'
             i=0
             while (i < len(texts.dates)): 
                 #print(str(x.getAll())) #debugprint
@@ -215,13 +215,13 @@ class mainCommands:
                 #print('date:' + currentdate) #debugprint
                 datadate = x.reSearch('date', currentdate)
                 if len(datadate) != 0:
-                    table += '\U0001F4C5_' + texts.weekdaysfull[i] + ' ' + instruments.formatDate(texts.dates[i]) + '_:\n'
+                    table += '\U0001F4C5' + texts.weekdaysfull[i] + ' ' + instruments.formatDate(texts.dates[i]) + ':\n'
                     z = 0
                     while (z < 25):
                         for y in datadate:
                             if y['time'] == z:
-                                table += '⌛' + texts.messages.list.time + '``' + str(y['time']) + ':00-' + str(y['time']+y['duration']) + ':00``\n'
-                                table += '🎹' + texts.messages.list.bandname + '``' + y['bandname'] + '``' + '\n'
+                                table += '⌛' + texts.messages.list.time + '' + str(y['time']) + ':00-' + str(y['time']+y['duration']) + ':00\n'
+                                table += '🎹' + texts.messages.list.bandname + '' + y['bandname'] + '' + '\n'
                                 #table += y['description'] + '\n'
                                 #table += str(y['duration']) + '\n'
                                 #table += y['date'] + '\n'
@@ -245,7 +245,7 @@ class mainCommands:
                 table += x.getAll()[i]['login'] + '\n'
                 table += str(x.getAll()[i]['id']) + '\n\n'
                 i+=1"""
-            bot.send_message(message.chat.id, table, parse_mode='Markdown')
+            bot.send_message(message.chat.id, table, parse_mode='None')
     # функция резерва
     def reservePoint(message):
         if len(ban.reSearch('tid', message.from_user.id)) == 0:
