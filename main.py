@@ -16,7 +16,7 @@ from tomlkit import date  # библиотека времени
 import texts  # texts.py - строки приложения
 import markups  # markups.py - кнопки приложения
 # ---------------------------------------------
-bot = telebot.TeleBot('', parse_mode='None')  # Token Insert
+bot = telebot.TeleBot('00000000:XXXXXXXXXXXXXXXXXXXXXXXXX', parse_mode='None')  # Token Insert
 users = pysondb.getDb('users.json')
 point = [pysondb.getDb('point1.json'), pysondb.getDb('point2.json'), pysondb.getDb('point3.json'), pysondb.getDb('point4.json')]
 admins = pysondb.getDb('admins.json')
