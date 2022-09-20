@@ -16,23 +16,28 @@ from tomlkit import date  # библиотека времени
 import texts  # texts.py - строки приложения
 import markups  # markups.py - кнопки приложения
 # ---------------------------------------------
-bot = telebot.TeleBot(
-    '5443931455:AAGU5Ot9oOSiWucnGxJn4utpPAeNS1nk8eo')  # Token Insert
+bot = telebot.TeleBot('', parse_mode='None')  # Token Insert
 users = pysondb.getDb('users.json')
-point = [pysondb.getDb('point1.json'), pysondb.getDb(    'point2.json'), pysondb.getDb('point3.json')]
+point = [pysondb.getDb('point1.json'), pysondb.getDb('point2.json'), pysondb.getDb('point3.json'), pysondb.getDb('point4.json')]
 admins = pysondb.getDb('admins.json')
 ban = pysondb.getDb('banned.json')
+
 globalDate = datetime.datetime.today()
 nextStepHandler = bot.register_next_step_handler  # переназначение комманды
 
-# инструменты (в основном работа с датой)
+#Добавление времени к print 
+old_print = print
+def timestamped_print(*args, **kwargs):
+  old_print(datetime.datetime.now(), *args, **kwargs)
+print = timestamped_print
+# инструменты (в основном работа с атой)
 class instruments:
     def checkForwardTime(pointNum, time, date):
         forwardTime = 0
-        print(str(dataBase.points.timeExist(pointNum, time+forwardTime, date)))
+        #print(str(dataBase.points.timeExist(pointNum, time+forwardTime, date)))
         while not dataBase.points.timeExist(pointNum, time+forwardTime, date) and forwardTime <= 5:
             forwardTime+=1
-            print(str(forwardTime))
+            #print(str(forwardTime))
         return forwardTime
     #установка дат недели
     def weekSet(today):
@@ -110,11 +115,11 @@ main()
 # комманда запуска
 @bot.message_handler(commands=['start'])
 def start(message):
-    random.seed()
-    q = random.choices(texts.quotes, weights=[20, 20, 20, 20, 5, 20, 20, 20, 20, 20], k=1)
-    print('/start: ' + str(message.from_user.id))
-    print('Reserve exist: ' + str(dataBase.points.checkExistingReserve(message.from_user.id)))
-    bot.send_photo(message.chat.id, open('images/main.png', 'rb'),'Приветствуем в Сообществе Уличных Музыкантов! Если вы хотите послушать уличных музыкантов, нажмите на кнопку "' + texts.buttons.start.button1 + '".\n Если вы сами являетесь исполнителем, то можете забронировать выступление используя кнопку "' + texts.buttons.start.button2 + '". \n\n_' + q[0] + '_', reply_markup=markups.start, parse_mode='Markdown')
+        if message.chat.type == 'private':
+            random.seed()
+            q = random.choices(texts.quotes, weights=[20, 20, 20, 20, 3, 20, 20, 20, 20, 20], k=1)
+            print('/start: ' + str(message.from_user.id))
+            bot.send_photo(message.chat.id, open('images/main.png', 'rb'),'Приветствуем в Сообществе Уличных Музыкантов! Если вы хотите послушать уличных музыкантов, нажмите на кнопку "' + texts.buttons.start.button1 + '".\n Если вы сами являетесь исполнителем, то можете забронировать выступление используя кнопку "' + texts.buttons.start.button2 + '". \n\n_' + q[0] + '_', reply_markup=markups.start, parse_mode='Markdown')
     
 def admin(message):
     if len(admins.reSearch('tid', message.from_user.id)) > 0:
@@ -148,9 +153,17 @@ def adminInputParse(message):
             start(message)
         case 'Upload databases':
             pass
+        case 'Change main chat':
+            nextStepHandler(message, adminChangeChat)
         case _:
             nextStepHandler(message, adminInputParse)
-        
+def adminChangeChat(message):
+    chatid = open('chatid', 'w')
+    chatid.truncate()
+    chatid.write(message.text)
+    chatid.close()
+    bot.send_message(message.chat.id, 'Done!')
+
 def addTID(message):
     try:
         admins.add({'tid': int(message.text)})
@@ -182,27 +195,35 @@ def unbanTID(message):
     bot.send_message(message.chat.id, 'done!:' + message.text)
 # класс основного управления
 class mainCommands:
-
+    @bot.message_handler(commands=['setmainchat'])
+    def mainchat(message):
+        if(message.chat.type != 'private'):
+            with open('chatid', 'r+') as chatid:
+                    chatid.truncate(0)
+                    chatid.write(str(message.chat.id))
+                    bot.send_message(message.chat.id, 'Теперь этот бот присылает сюда обновления в расписании!')
     # парсер ввода
     @bot.message_handler(content_types=['text'])
     def inputparser(message):
-        match message.text:
-            case '/admin':
-                admin(message)
-            case texts.buttons.start.button1:  # расписание
-                print('buttons.start.button1: ' + str(message.from_user.id))
-                mainCommands.sendPointsList(message)
-            case texts.buttons.start.button2:  # резерв
-                mainCommands.reservePoint(message)
-                print('buttons.start.button2: ' + str(message.from_user.id))
-            case texts.buttons.start.deleteAccount:  # удаление Аккаунта
-                deleteAccount.delete(message)
-                print('buttons.start.deleteAccount: ' + str(message.from_user.id))
-            case texts.buttons.start.about:  # информация о боте
-                print('buttons.start.about: ' + str(message.from_user.id))
-                bot.send_message(message.chat.id, 'Этот бот создан @leracpp.\nОн находится в стадии бета-теста, некоторые функции могут не работать, могут возникать баги и ошибки. По всем вопросам и предложениям, помощи в отладке и исправлении багов писать в личку. \n*ПОЖАЛУЙСТА, дублируйте свою бронь в чат "Советская ЧАТ Брест". Это поможет избежать конфликтов при ошибках бота.*\nПравила пользования:\n-Запрещены названия связаные с экстремизмом или экстремистскими материалами \n(http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/)\n-Запрещёно злоупотребление багами и ошибками(абуз)\n', parse_mode='Markdown');
-            case texts.buttons.choice.back:
-                start(message)
+        if(message.chat.type == 'private'):
+            match message.text:
+                case '/admin':
+                    admin(message)
+                case texts.buttons.start.button1:  # расписание
+                    print('buttons.start.button1(Table): ' + str(message.from_user.id))
+                    mainCommands.sendPointsList(message)
+                case texts.buttons.start.button2:  # резерв
+                    mainCommands.reservePoint(message)
+                    print('buttons.start.button2(Reserve): ' + str(message.from_user.id))
+                    print('Reserve exist: ' + str(dataBase.points.checkExistingReserve(message.from_user.id)))
+                case texts.buttons.start.deleteAccount:  # удаление Аккаунта
+                    deleteAccount.delete(message)
+                    print('buttons.start.deleteAccount: ' + str(message.from_user.id))
+                case texts.buttons.start.about:  # информация о боте
+                    print('buttons.start.about: ' + str(message.from_user.id))
+                    bot.send_message(message.chat.id, 'Этот бот создан @leracpp.\nОн находится в стадии бета-теста, некоторые функции могут не работать, могут возникать баги и ошибки. По всем вопросам и предложениям, помощи в отладке и исправлении багов писать в личку. *\nПравила пользования:\n-Запрещены названия связаные с экстремизмом или экстремистскими материалами \n(http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/)\n-Запрещёно злоупотребление багами и ошибками(абуз)*\nВерсия: 0.9.3', parse_mode='Markdown');
+                case texts.buttons.choice.back:
+                    start(message)
     # функция отправки расписания
     def sendPointsList(message):
         for x in point:
@@ -232,7 +253,7 @@ class mainCommands:
                         z+=1 
                     #print('datadate:' + str(datadate)) #debugprint
                 i+=1
-            if table == '\U0001F4CD*' + texts.pointNames[point.index(x)] + '*\n\n':            
+            if table == '\U0001F4CD' + texts.pointNames[point.index(x)] + '\n\n':            
                 table += texts.messages.list.listempty 
             """while i < len(x.getAll()):
                 table += x.getAll()[i]['bandname'] + '\n'
@@ -250,7 +271,7 @@ class mainCommands:
     def reservePoint(message):
         if len(ban.reSearch('tid', message.from_user.id)) == 0:
             #проверка регистрации
-            print(ban.reSearch('tid', message.from_user.id))
+            #print(ban.reSearch('tid', message.from_user.id))
             if len(users.reSearch('tid', message.from_user.id)) > 0:
                 bot.send_message(message.chat.id, 'Приветствуем ' + str(dataBase.user.getUserName(message.from_user.id)) + '!\nВы выступаете под названием "' + dataBase.user.getBandName(message.from_user.id) + '"\nВыберите точку на которой собираетесь выступать', reply_markup=markups.points)
                 nextStepHandler(message, points.selectPoint)
@@ -259,8 +280,23 @@ class mainCommands:
                     message.chat.id, 'Вы не зарегистрированы! Отправьте нам свой номер телефона используя кнопку ниже', reply_markup=markups.register)
                 nextStepHandler(message, registerAccount.register)
         else:
-            print(ban.reSearch('tid', message.from_user.id))
+            #print(ban.reSearch('tid', message.from_user.id))
             bot.send_message(message.from_user.id, 'Access denied')
+    def changeName(message):
+        if len(message.text) < 48:
+            if message.text == '/start':
+                start(message)
+            else:
+                bandname = message.text
+                id = dataBase.user.getId(message.from_user.id)
+                users.updateById(id, {'bandname': bandname})
+                bot.send_message(message.chat.id, 'Имя успешно изменено!')
+                sleep(1)
+                start(message)
+        else:
+            bot.send_message('Слишком длинное название. Попробуйте ещё раз')
+            nextStepHandler(message, mainCommands.changeName)
+
 # класс бронирования точки
 class points:
     def selectPoint(message):
@@ -270,12 +306,16 @@ class points:
             points.selectDate(message, 1)
         elif message.text == texts.pointNames[2]:
             points.selectDate(message, 2)
+        elif message.text == texts.pointNames[3]:
+            points.selectDate(message, 3)
         elif message.text == texts.buttons.other.deleteReserve:
             points.deleteReserve(message)
         elif message.text == texts.buttons.other.changeName:
-            bot.send_message(message.chat.id, '🖥В разработке...')
+            """bot.send_message(message.chat.id, '🖥В разработке...')
             sleep(1)
-            start(message)
+            start(message)"""
+            bot.send_message(message.chat.id, 'Введите новое название:\n*Старые брони остануться со старым названием!*', reply_markup=markups.remove, parse_mode='markdown')
+            nextStepHandler(message, mainCommands.changeName)
         elif message.text == texts.buttons.choice.back:
                 start(message)
     def selectDate(message, pointNum):
@@ -284,14 +324,8 @@ class points:
             for x in texts.dates:
                 dataprint += '\n' + texts.weekdays[texts.dates.index(x)] + ': ' + instruments.formatDate(x)
             match pointNum:
-                case 0:
-                    bot.send_message(message.chat.id, texts.pointNames[pointNum]+ 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
-                    nextStepHandler(message, points.selectTimeStart, pointNum)
-                case 1:
-                    bot.send_message(message.chat.id, texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
-                    nextStepHandler(message, points.selectTimeStart, pointNum)
-                case 2:
-                    bot.send_message(message.chat.id, texts.pointNames[pointNum] + 'Выберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
+                case 0|1|2|3 :
+                    bot.send_photo(message.chat.id, open('images/point'+ str(pointNum) + '.png', 'rb'), texts.pointNames[pointNum]+ '\nВыберите дату бронирования:\n' + dataprint, parse_mode='Markdown', reply_markup=markups.weekdays)
                     nextStepHandler(message, points.selectTimeStart, pointNum)
                 case texts.buttons.choice.back:
                     mainCommands.reservePoint(message)
@@ -308,7 +342,7 @@ class points:
             if message.text == x:
                 weekday = texts.weekdays.index(x)
         if weekday is not None:
-            print('points.selectTimeStart:' + str(message.from_user.id) + '\n {weekday, texts.dates[weekday]}\n{' + str(weekday) + ', ' + str(texts.dates[weekday]) + '}')
+            #print('points.selectTimeStart:' + str(message.from_user.id) + '\n {weekday, texts.dates[weekday]}\n{' + str(weekday) + ', ' + str(texts.dates[weekday]) + '}')
             bot.send_message(message.chat.id, 'Дата: ' + instruments.formatDate(texts.dates[weekday]) + '\nТочка: ' + texts.pointNames[pointNum] + '\nУкажите время начала:', reply_markup=instruments.timeMarkupConstruct(pointNum, texts.dates[weekday]))
             nextStepHandler(message, points.selectDuration, pointNum, texts.dates[weekday])
         elif message.text == texts.buttons.choice.back:
@@ -348,7 +382,8 @@ class points:
     def saveReserve(message, pointNum, date, time, duration):
         if message.text == texts.buttons.choice.correct:
             tid = message.from_user.id
-            dataBase.points.addReserve(pointNum, dataBase.user.getBandName(tid),'', time, duration, date, dataBase.user.getNumber(tid), tid, str(dataBase.user.getUserName(tid)))
+            reserve = dataBase.points.addReserve(pointNum, dataBase.user.getBandName(tid),'', time, duration, date, dataBase.user.getNumber(tid), tid, str(dataBase.user.getUserName(tid)))
+            print('Reserved:' + str(point[pointNum].getById(reserve)))
             bot.send_message(message.chat.id, 'Успешно зарезервировано!')
             start(message)
         else:
@@ -362,6 +397,7 @@ class points:
         if message.text == texts.buttons.choice.yes:
             dataBase.points.removeReserveFromDB(message)
             bot.send_message(message.chat.id, 'Все брони удалены!')
+            print('Reserves deleted: ' + str(message.from_user.id))
             sleep(1)
             start(message)
         else:
@@ -376,6 +412,8 @@ class deleteAccount:
             nextStepHandler(message, deleteAccount.confirm)
         else:
             bot.send_message(message.chat.id, 'Аккаунта не существует')
+            sleep(1)
+            start(message)
     def confirm(message):
         if message.text == texts.buttons.choice.yes:
             id = users.reSearch('tid', message.from_user.id)[0]['id']
@@ -386,6 +424,8 @@ class deleteAccount:
             start(message)
         else:
             bot.send_message(message.chat.id, 'Отменено', reply_markup=markups.start)
+            sleep(1)
+            start(message)
 # класс регистрации аккаунта
 class registerAccount:
     # начало регистрации
@@ -402,7 +442,7 @@ class registerAccount:
             bot.send_message(message.chat.id, texts.errors.register.phoneError)
 
     def step2(message, number, login):
-        if len(message.text) < 24:
+        if len(message.text) < 48:
             bandname = message.text
             users.add({'bandname': bandname, 'tid': message.from_user.id,
                        'number': number, 'login': login})
@@ -441,6 +481,13 @@ class dataBase:
             except:
                 return None
             return out
+        def getId(tid):
+            try:
+                out = users.reSearch('tid', tid)[0]['id']
+            except:
+                return None
+            return out    
+        
     class points:
         def checkExistingReserve(tid):
             result = 0
@@ -466,13 +513,22 @@ class dataBase:
                         point[point.index(x)].deleteById(id)
                     i+=1
         def addReserve(pointNum, bandname, description, time, duration, date, number, tid, login):
-            point[pointNum].add({'bandname': bandname, 'description': description, 'time': time, 'duration': duration, 'date': date, 'number': number, 'tid': tid, 'login': login})
+            ret = point[pointNum].add({'bandname': bandname, 'description': description, 'time': time, 'duration': duration, 'date': date, 'number': number, 'tid': tid, 'login': login})
+            with open('chatid', 'rb') as chatid:
+                index = date.index('.')
+                operationalDate = datetime.datetime(globalDate.year, int(date[index+1:]), int(date[:index]))
+                weekday = operationalDate.weekday()
+                try:
+                    bot.send_message(int(chatid.readline()), 'Новая бронь!\n\n📍' + texts.pointNames[pointNum] + '\n\n📅' + texts.weekdaysfull[weekday]+ ' ' + instruments.formatDate(date) + ':\n⌛️Время выступления: ' + str(time) + ':00-' + str(time+duration) + ':00\n🎹Название исполнителя: ' + bandname + '\n📞Контактные данные выступающего: @' + login, reply_markup=markups.remove)
+                except Exception:
+                    pass
+            return ret
         def timeExist(pointNum, time, date):
             try:
                 dates = point[pointNum].reSearch('time', time)
                 #print('input date:' + date) #debugprint
                 for x in dates:
-                    print('output date: ' + x['date'])
+                    #print('output date: ' + x['date'])
                     if x['date'] == date:
                         return True
                 else:
@@ -489,6 +545,8 @@ class dataBase:
                         return 0
             except:
                 return None
+
+
 
 #####
 bot.infinity_polling(10000)  # Init infinity cycle timeout=10000

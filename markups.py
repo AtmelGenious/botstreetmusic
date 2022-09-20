@@ -2,7 +2,7 @@ from numpy import empty
 from telebot import types
 import texts
     
-empty = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+EMPTY = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
 
 start = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
 start.add(types.KeyboardButton(texts.buttons.start.button1))
@@ -35,4 +35,4 @@ confirm = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=Tru
 confirm.add(types.KeyboardButton(texts.buttons.choice.correct), types.KeyboardButton(texts.buttons.choice.cancel))
 
 adminmenu = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-adminmenu.add(types.KeyboardButton('Download databases'),types.KeyboardButton('Ban by TID'), types.KeyboardButton('Unban by TID'), types.KeyboardButton('Add admin by TID'), types.KeyboardButton('Remove admin by TID'))
+adminmenu.add(types.KeyboardButton('Download databases'),types.KeyboardButton('Ban by TID'), types.KeyboardButton('Unban by TID'), types.KeyboardButton('Add admin by TID'), types.KeyboardButton('Remove admin by TID'), types.KeyboardButton("Change main chat"))
